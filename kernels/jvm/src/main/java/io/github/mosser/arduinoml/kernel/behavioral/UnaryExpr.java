@@ -12,10 +12,7 @@ public class UnaryExpr extends Expr{
 
     private final ExprType type = ExprType.UNARY;
 
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
-    }
+
 
     @Override
     public ExprType getExprType() {

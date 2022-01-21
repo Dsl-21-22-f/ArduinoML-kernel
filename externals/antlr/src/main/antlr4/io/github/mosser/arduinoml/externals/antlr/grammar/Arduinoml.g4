@@ -29,7 +29,7 @@ expr            :   (unaryexpr|binaryexpr)+;
  *****************/
 PORT_NUMBER     :   [1-9] | '11' | '12';
 IDENTIFIER      :   LOWERCASE (LOWERCASE|UPPERCASE)+;
-SIGNAL          :   'HIGH' | 'LOW';
+SIGNAL          :   'HIGH' | 'LOW' | 'PUSHED';
 OPERATOR        :     'OR' | 'AND';
 /*************
  ** Helpers **
