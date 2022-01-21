@@ -6,19 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="dsl-java" />
-        <module name="dsl-groovy" />
-        <module name="dsl-scala" />
-        <module name="kernel-jvm" />
+        <module name="external-antlr" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="dsl-groovy" target="1.8" />
-      <module name="dsl-java" target="1.8" />
-      <module name="dsl-scala" target="1.8" />
       <module name="external-antlr" target="1.8" />
-      <module name="kernel-jvm" target="1.8" />
-      <module name="root" target="1.5" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -4,9 +4,7 @@ import io.github.mosser.arduinoml.externals.antlr.grammar.*;
 
 
 import io.github.mosser.arduinoml.kernel.App;
-import io.github.mosser.arduinoml.kernel.behavioral.Action;
-import io.github.mosser.arduinoml.kernel.behavioral.State;
-import io.github.mosser.arduinoml.kernel.behavioral.Transition;
+import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.structural.Actuator;
 import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
 import io.github.mosser.arduinoml.kernel.structural.Sensor;
@@ -37,11 +35,14 @@ public class ModelBuilder extends ArduinomlBaseListener {
     private Map<String, State>    states  = new HashMap<>();
     private Map<String, Binding>  bindings  = new HashMap<>();
 
+
+
     private class Binding { // used to support state resolution for transitions
         String to; // name of the next state, as its instance might not have been compiled yet
-        Sensor trigger;
-        SIGNAL value;
+        Expr expr;
     }
+
+
 
     private State currentState = null;
 
@@ -59,8 +60,7 @@ public class ModelBuilder extends ArduinomlBaseListener {
         // Resolving states in transitions
         bindings.forEach((key, binding) ->  {
             Transition t = new Transition();
-            t.setSensor(binding.trigger);
-            t.setValue(binding.value);
+            t.setExpr(bindings.get(binding.to).expr);
             t.setNext(states.get(binding.to));
             states.get(key).setTransition(t);
         });
@@ -117,10 +117,33 @@ public class ModelBuilder extends ArduinomlBaseListener {
         // Creating a placeholder as the next state might not have been compiled yet.
         Binding toBeResolvedLater = new Binding();
         toBeResolvedLater.to      = ctx.next.getText();
-        toBeResolvedLater.trigger = sensors.get(ctx.trigger.getText());
-        toBeResolvedLater.value   = SIGNAL.valueOf(ctx.value.getText());
+        if(ctx.condition.binaryexpr().size()>0){
+            BinaryExpr binaryExpr = new BinaryExpr();
+            UnaryExpr left = new UnaryExpr();
+            UnaryExpr right = new UnaryExpr();
+
+            left.setSensor(sensors.get(ctx.condition.binaryexpr(0).expr1.trigger.getText()));
+            right.setSensor(sensors.get(ctx.condition.binaryexpr(0).expr2.trigger.getText()));
+
+            left.setValue(SIGNAL.valueOf(ctx.condition.binaryexpr(0).expr1.value.getText()));
+            right.setValue(SIGNAL.valueOf(ctx.condition.binaryexpr(0).expr2.value.getText()));
+
+            binaryExpr.setLeft(left);
+            binaryExpr.setRight(right);
+            binaryExpr.setOperator(OPERATOR.valueOf(ctx.condition.binaryexpr(0).operator.getText()));
+            toBeResolvedLater.expr = binaryExpr;
+        }
+        else{
+            UnaryExpr unaryExpr = new UnaryExpr();
+            unaryExpr.setSensor(sensors.get(ctx.condition.unaryexpr(0).trigger.getText()));
+            unaryExpr.setValue(SIGNAL.valueOf(ctx.condition.unaryexpr(0).value.getText()));
+            toBeResolvedLater.expr = unaryExpr;
+        }
+
         bindings.put(currentState.getName(), toBeResolvedLater);
     }
+
+
 
     @Override
     public void enterInitial(ArduinomlParser.InitialContext ctx) {

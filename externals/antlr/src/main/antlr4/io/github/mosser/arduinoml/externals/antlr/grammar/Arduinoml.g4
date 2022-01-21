@@ -17,17 +17,20 @@ bricks          :   (sensor|actuator)+;
 states          :   state+;
     state       :   initial? name=IDENTIFIER '{'  action+ transition '}';
     action      :   receiver=IDENTIFIER '<=' value=SIGNAL;
-    transition  :   trigger=IDENTIFIER 'is' value=SIGNAL '=>' next=IDENTIFIER ;
+    transition  :   condition=expr '=>' next=IDENTIFIER;
     initial     :   '->';
+
+expr            :   (unaryexpr|binaryexpr)+;
+    unaryexpr   :   trigger=IDENTIFIER 'is' value=SIGNAL;
+    binaryexpr  :   expr1=unaryexpr operator=OPERATOR expr2=unaryexpr;
 
 /*****************
  ** Lexer rules **
  *****************/
-
 PORT_NUMBER     :   [1-9] | '11' | '12';
 IDENTIFIER      :   LOWERCASE (LOWERCASE|UPPERCASE)+;
 SIGNAL          :   'HIGH' | 'LOW';
-
+OPERATOR        :     'OR' | 'AND';
 /*************
  ** Helpers **
  *************/

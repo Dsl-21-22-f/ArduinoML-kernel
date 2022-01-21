@@ -4,6 +4,9 @@ import io.github.mosser.arduinoml.kernel.App;
 import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Quick and dirty visitor to support the generation of Wiring code
  */
@@ -86,6 +89,17 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 	@Override
+	public void visit(BinaryExpr expr) {
+
+	}
+
+	@Override
+	public void visit(UnaryExpr expr) {
+
+	}
+
+
+	@Override
 	public void visit(State state) {
 		if(context.get("pass") == PASS.ONE){
 			w(state.getName());
@@ -112,17 +126,50 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.TWO) {
-			String sensorName = transition.getSensor().getName();
-			w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-					sensorName, sensorName));
-			w(String.format("\t\t\tif( digitalRead(%d) == %s && %sBounceGuard) {\n",
-					transition.getSensor().getPin(), transition.getValue(), sensorName));
-			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", sensorName));
+			Expr expr = transition.getExpr();
+			System.out.println(expr.getExprType());
+			if(expr.getExprType()==ExprType.BINARY){
+				String sensorName = ((BinaryExpr) expr).getLeft().getSensor().getName();
+				w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+						sensorName, sensorName));
+				String sensorName2 = ((BinaryExpr) expr).getRight().getSensor().getName();
+				w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+						sensorName2, sensorName2));
+			}
+			else{
+				String sensorName = ((UnaryExpr) expr).getSensor().getName();
+				w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+						sensorName, sensorName));
+			}
+
+
+			if(expr.getExprType()==ExprType.UNARY){
+				String sensorName = ((UnaryExpr) expr).getSensor().getName();
+				w(String.format("\t\t\tif( digitalRead(%d) == %s && %sBounceGuard) {\n",
+						((UnaryExpr)transition.getExpr()).getSensor().getPin(), ((UnaryExpr)transition.getExpr()).getValue(), sensorName));
+				w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", sensorName));
+			}
+			else{
+				w(String.format("\t\t\tif("));
+				String sensorNameLeft = ((BinaryExpr) expr).getLeft().getSensor().getName();
+				w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
+						((BinaryExpr)expr).getLeft().getSensor().getPin(), ((BinaryExpr)expr).getLeft().getValue(), sensorNameLeft));
+				w(String.format(" %s ",
+						((BinaryExpr)expr).getOperator().getValue()));
+				String sensorNameRight = ((BinaryExpr) expr).getRight().getSensor().getName();
+				w(String.format("(digitalRead(%d) == %s && %sBounceGuard))",
+						((BinaryExpr)expr).getRight().getSensor().getPin(), ((BinaryExpr)expr).getRight().getValue(), sensorNameRight));
+				w(String.format(" {\n"));
+
+			}
+
 			w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 			w("\t\t\t}\n");
 			return;
 		}
 	}
+
+
 
 	@Override
 	public void visit(Action action) {
