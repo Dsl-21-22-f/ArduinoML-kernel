@@ -13,6 +13,8 @@ public class SensorCondition extends AbstractCondition{
         return value;
     }
 
+    private final ConditionType type = ConditionType.SENSOR;
+
     public void setValue(CONDITION value) {
         this.value = value;
     }
@@ -28,5 +30,11 @@ public class SensorCondition extends AbstractCondition{
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+
+    @Override
+    public ConditionType getType() {
+        return type;
     }
 }

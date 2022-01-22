@@ -24,8 +24,8 @@ expr            :   (unaryexpr|binaryexpr);
     unaryexpr   :   condition;
     binaryexpr  :   expr1=unaryexpr operator=OPERATOR expr2=unaryexpr;
 condition       :   (timecondition|sensorcondition);
-    timecondition:   'after' trigger=NUMBER 'ms';
-    sensorcondition:   trigger=IDENTIFIER 'is' value=(BUTTONSTATE|SIGNAL);
+    timecondition:  'after' trigger=NUMBER 'ms';
+    sensorcondition: trigger=IDENTIFIER 'is' value=(BUTTONSTATE|SIGNAL);
 
 /*****************
  ** Lexer rules **

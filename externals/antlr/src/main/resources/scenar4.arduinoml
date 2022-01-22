@@ -8,22 +8,22 @@ actuator buzzer: 12
 # Declaring states
 onLed {
     led <= HIGH
-    button is PUSHED => offLed
+    button is PUSHED OR after 1000 ms => offLed
 }
 
 offLed {
     led <= LOW
     buzzer <= LOW
-    button is PUSHED => onBuzz
+    button is PUSHED OR after 1000 ms => onBuzz
 }
 
 onBuzz {
     buzzer <= HIGH
-    button is PUSHED => off
+    button is PUSHED OR after 1000 ms => off
 }
 
 -> off {
     led <= LOW
     buzzer<=LOW
-    button is PUSHED => onLed
+    button is PUSHED OR after 1000 ms => onLed
 }

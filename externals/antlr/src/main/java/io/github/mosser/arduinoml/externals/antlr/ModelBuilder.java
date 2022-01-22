@@ -35,7 +35,8 @@ public class ModelBuilder extends ArduinomlBaseListener {
     private Map<String, State>    states  = new HashMap<>();
     private Map<String, Binding>  bindings  = new HashMap<>();
 
-    private Map<String, Expr>  expressions  = new HashMap<>();
+    private Map<String, BinaryExpr>  binarys  = new HashMap<>();
+    private Map<String, UnaryExpr>  unarys  = new HashMap<>();
 
 
 
@@ -119,7 +120,12 @@ public class ModelBuilder extends ArduinomlBaseListener {
         // Creating a placeholder as the next state might not have been compiled yet.
         Binding toBeResolvedLater = new Binding();
         toBeResolvedLater.to      = ctx.next.getText();
-        toBeResolvedLater.expr    = expressions.get(currentState.getName());
+        if(binarys.get(currentState.getName())!=null){
+            toBeResolvedLater.expr    = binarys.get(currentState.getName());
+        }
+        else{
+            toBeResolvedLater.expr    = unarys.get(currentState.getName());
+        }
         bindings.put(currentState.getName(), toBeResolvedLater);
     }
 
@@ -157,15 +163,16 @@ public class ModelBuilder extends ArduinomlBaseListener {
         else{
             TimeCondition timeCondition = new TimeCondition();
             timeCondition.setTime(Integer.parseInt(ctx.expr2.condition().timecondition().trigger.getText()));
-            left.setCondition(timeCondition);
+            right.setCondition(timeCondition);
         }
 
 
         binaryExpr.setLeft(left);
         binaryExpr.setRight(right);
         binaryExpr.setOperator(OPERATOR.valueOf(ctx.operator.getText()));
-        expressions.put(currentState.getName(),binaryExpr);
+        binarys.put(currentState.getName(),binaryExpr);
         System.out.println(binaryExpr);
+        System.out.println(currentState.getName());
 
     }
 
@@ -185,7 +192,8 @@ public class ModelBuilder extends ArduinomlBaseListener {
         }
 
 
-        expressions.put(currentState.getName(),unary);
+        unarys.put(currentState.getName(),unary);
+        System.out.println(currentState.getName());
 
     }
 
