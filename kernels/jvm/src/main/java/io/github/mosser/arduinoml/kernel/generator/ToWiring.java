@@ -11,7 +11,7 @@ import java.util.List;
  * Quick and dirty visitor to support the generation of Wiring code
  */
 public class ToWiring extends Visitor<StringBuffer> {
-	enum PASS {ONE, TWO, THREE, FOUR}
+	enum PASS {ONE, TWO, THREE, FOUR, FIVE, SIX}
 
 
 	public ToWiring() {
@@ -60,11 +60,12 @@ public class ToWiring extends Visitor<StringBuffer> {
 			brick.accept(this);
 		}
 		w("\tswitch(currentState){\n");
+		context.put("pass",PASS.FOUR);
 		for(State state: app.getStates()){
 			state.accept(this);
 		}
 		w("\t}\n");
-		context.put("pass",PASS.FOUR);
+		context.put("pass",PASS.FIVE);
 		for(Brick brick: app.getBricks()){
 			brick.accept(this);
 		}
@@ -101,12 +102,50 @@ public class ToWiring extends Visitor<StringBuffer> {
 			w(String.format("   %sState = digitalRead(%d);\n", sensor.getName(), sensor.getPin()));
 			return;
 		}
-		if(context.get("pass") == PASS.FOUR) {
+
+		if(context.get("pass") == PASS.FIVE) {
 			w(String.format("   %sLastState = %sState;\n", sensor.getName(),sensor.getName() ));
 			return;
 		}
 	}
 
+	@Override
+	public void visit(UnaryExpr unaryExpr) {
+		unaryExpr.getCondition().accept(this);
+	}
+
+	@Override
+	public void visit(BinaryExpr binaryExpr) {
+		binaryExpr.getLeft().accept(this);
+		if (context.get("pass") == PASS.FOUR){
+			//OPERATOR
+			w(String.format(" %s ", binaryExpr.getOperator().getValue()));
+		}
+		binaryExpr.getRight().accept(this);
+	}
+
+	@Override
+	public void visit(TimeCondition timeCondition) {
+		if(context.get("pass") == PASS.FOUR) {
+
+		}
+	}
+
+	@Override
+	public void visit(SensorCondition sensorCondition) {
+		if(context.get("pass") == PASS.FOUR) {
+			if(sensorCondition.getValue()==CONDITION.PUSHED){
+				printPushedCondition(sensorCondition.getSensor().getName());
+			}
+			else{
+				printSignalCondition(sensorCondition.getSensor(), sensorCondition.getValue());
+			}
+		}
+		if(context.get("pass") == PASS.FIVE) {
+			sensorCondition.getSensor().accept(this);
+		}
+
+		}
 
 
 	@Override
@@ -115,7 +154,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			w(state.getName());
 			return;
 		}
-		if(context.get("pass") == PASS.THREE) {
+		if(context.get("pass") == PASS.FOUR) {
 			w("\t\tcase " + state.getName() + ":\n");
 			for (Action action : state.getActions()) {
 				action.accept(this);
@@ -130,64 +169,44 @@ public class ToWiring extends Visitor<StringBuffer> {
 
 	}
 
+
 	@Override
 	public void visit(Transition transition) {
-		if(context.get("pass") == PASS.ONE) {
-			return;
-		}
-		if(context.get("pass") == PASS.THREE) {
+		if(context.get("pass") == PASS.FOUR) {
+			System.out.println(transition.getExpr());
 			Expr expr = transition.getExpr();
 			System.out.println(expr.getExprType());
-			if(expr.getExprType()==ExprType.UNARY){
-				String sensorName = ((UnaryExpr) expr).getSensor().getName();
+			if (expr.getExprType() == ExprType.UNARY) {
+				String sensorName = ((SensorCondition) ((UnaryExpr) expr).getCondition()).getSensor().getName();
 				printDebounceGuard(sensorName);
-			}
-			else{
-				String sensorName = ((BinaryExpr) expr).getLeft().getSensor().getName();
+			} else {
+				String sensorName = ((SensorCondition) ((BinaryExpr) expr).getLeft().getCondition()).getSensor().getName();
 				printDebounceGuard(sensorName);
-				String sensorName2 = ((BinaryExpr) expr).getRight().getSensor().getName();
+				String sensorName2 = ((SensorCondition) ((BinaryExpr) expr).getRight().getCondition()).getSensor().getName();
 				printDebounceGuard(sensorName2);
 			}
-			//
+			//Conditions
 			w(String.format("\t\t\tif("));
-			if(expr.getExprType()==ExprType.UNARY){
-				String sensorName = ((UnaryExpr) expr).getSensor().getName();
-				if(((UnaryExpr)expr).getValue()==CONDITION.PUSHED){
-					printPushedCondition(sensorName);
-				}
-				else{
-					printSignalCondition(((UnaryExpr)expr).getSensor(), ((UnaryExpr)expr).getValue());
-				}
+			expr.accept(this);
+			w(String.format("){\n"));
+			if(expr.getExprType() == ExprType.UNARY){
+				printDebounceButton(((UnaryExpr) expr));
 			}
 			else{
-				String sensorNameLeft = ((BinaryExpr) expr).getLeft().getSensor().getName();
-				if(((BinaryExpr) expr).getLeft().getValue()==CONDITION.PUSHED){
-					printPushedCondition(sensorNameLeft);
-				}
-				else{
-					printSignalCondition(((BinaryExpr)expr).getLeft().getSensor(), ((BinaryExpr)expr).getLeft().getValue());
-				}
-				//OPERATOR
-				w(String.format(" %s ",
-						((BinaryExpr)expr).getOperator().getValue()));
-				String sensorNameRight = ((BinaryExpr) expr).getRight().getSensor().getName();
-
-				if(((BinaryExpr) expr).getRight().getValue()==CONDITION.PUSHED){
-					printPushedCondition(sensorNameRight);
-				}
-				else{
-					 printSignalCondition(((BinaryExpr)expr).getRight().getSensor(), ((BinaryExpr)expr).getRight().getValue());
-				}
-
-
+				printDebounceButton(((BinaryExpr) expr).getLeft());
+				printDebounceButton(((BinaryExpr) expr).getRight());
 			}
-			w(String.format("){\n"));
-
-
 			w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 			w("\t\t\t}\n");
 			return;
 		}
+	}
+
+	void printDebounceButton(UnaryExpr expr){
+		if(((SensorCondition) expr.getCondition()).getSensor()!=null){
+			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", ((SensorCondition) expr.getCondition()).getSensor().getName()));
+		}
+
 	}
 
 	void printPushedCondition(String sensorName){
@@ -210,7 +229,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 		if(context.get("pass") == PASS.ONE) {
 			return;
 		}
-		if(context.get("pass") == PASS.THREE) {
+		if(context.get("pass") == PASS.FOUR) {
 			w(String.format("\t\t\tdigitalWrite(%d,%s);\n",action.getActuator().getPin(),action.getValue()));
 			return;
 		}

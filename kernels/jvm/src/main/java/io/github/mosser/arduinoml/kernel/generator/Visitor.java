@@ -18,6 +18,12 @@ public abstract class Visitor<T> {
 	public abstract void visit(Actuator actuator);
 	public abstract void visit(Sensor sensor);
 
+	public abstract void visit(UnaryExpr unaryExpr);
+	public abstract void visit(BinaryExpr binaryExpr);
+
+	public abstract void visit(TimeCondition timeCondition);
+	public abstract void visit(SensorCondition sensorCondition);
+
 
 	/***********************
 	 ** Helper mechanisms **

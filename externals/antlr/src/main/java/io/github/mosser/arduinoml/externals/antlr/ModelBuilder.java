@@ -35,6 +35,8 @@ public class ModelBuilder extends ArduinomlBaseListener {
     private Map<String, State>    states  = new HashMap<>();
     private Map<String, Binding>  bindings  = new HashMap<>();
 
+    private Map<String, Expr>  expressions  = new HashMap<>();
+
 
 
     private class Binding { // used to support state resolution for transitions
@@ -113,35 +115,11 @@ public class ModelBuilder extends ArduinomlBaseListener {
     }
 
     @Override
-    public void enterTransition(ArduinomlParser.TransitionContext ctx) {
+    public void exitTransition(ArduinomlParser.TransitionContext ctx) {
         // Creating a placeholder as the next state might not have been compiled yet.
         Binding toBeResolvedLater = new Binding();
         toBeResolvedLater.to      = ctx.next.getText();
-
-
-        if(ctx.condition.binaryexpr()!=null){
-            BinaryExpr binaryExpr = new BinaryExpr();
-            UnaryExpr left = new UnaryExpr();
-            UnaryExpr right = new UnaryExpr();
-
-            left.setSensor(sensors.get(ctx.condition.binaryexpr().expr1.trigger.getText()));
-            right.setSensor(sensors.get(ctx.condition.binaryexpr().expr2.trigger.getText()));
-
-            left.setValue(CONDITION.valueOf(ctx.condition.binaryexpr().expr1.value.getText()));
-            right.setValue(CONDITION.valueOf(ctx.condition.binaryexpr().expr2.value.getText()));
-
-            binaryExpr.setLeft(left);
-            binaryExpr.setRight(right);
-            binaryExpr.setOperator(OPERATOR.valueOf(ctx.condition.binaryexpr().operator.getText()));
-            toBeResolvedLater.expr = binaryExpr;
-        }
-        else{
-            UnaryExpr unaryExpr = new UnaryExpr();
-            unaryExpr.setSensor(sensors.get(ctx.condition.unaryexpr().trigger.getText()));
-            unaryExpr.setValue(CONDITION.valueOf(ctx.condition.unaryexpr().value.getText()));
-
-            toBeResolvedLater.expr = unaryExpr;
-        }
+        toBeResolvedLater.expr    = expressions.get(currentState.getName());
         bindings.put(currentState.getName(), toBeResolvedLater);
     }
 
@@ -151,6 +129,66 @@ public class ModelBuilder extends ArduinomlBaseListener {
     public void enterInitial(ArduinomlParser.InitialContext ctx) {
         this.theApp.setInitial(this.currentState);
     }
+
+    @Override public void enterBinaryexpr(ArduinomlParser.BinaryexprContext ctx) {
+        BinaryExpr binaryExpr = new BinaryExpr();
+        UnaryExpr left = new UnaryExpr();
+        UnaryExpr right = new UnaryExpr();
+
+        if( ctx.expr1.condition().sensorcondition()!=null){
+            SensorCondition sensorCondition = new SensorCondition();
+            sensorCondition.setSensor(sensors.get(ctx.expr1.condition().sensorcondition().trigger.getText()));
+            sensorCondition.setValue(CONDITION.valueOf(ctx.expr1.condition().sensorcondition().value.getText()));
+            left.setCondition(sensorCondition);
+        }
+        else{
+            TimeCondition timeCondition = new TimeCondition();
+            timeCondition.setTime(Integer.parseInt(ctx.expr1.condition().timecondition().trigger.getText()));
+            left.setCondition(timeCondition);
+        }
+
+        if( ctx.expr2.condition().sensorcondition()!=null){
+            SensorCondition sensorCondition = new SensorCondition();
+            sensorCondition.setSensor(sensors.get(ctx.expr2.condition().sensorcondition().trigger.getText()));
+            sensorCondition.setValue(CONDITION.valueOf(ctx.expr2.condition().sensorcondition().value.getText()));
+            right.setCondition(sensorCondition);
+
+        }
+        else{
+            TimeCondition timeCondition = new TimeCondition();
+            timeCondition.setTime(Integer.parseInt(ctx.expr2.condition().timecondition().trigger.getText()));
+            left.setCondition(timeCondition);
+        }
+
+
+        binaryExpr.setLeft(left);
+        binaryExpr.setRight(right);
+        binaryExpr.setOperator(OPERATOR.valueOf(ctx.operator.getText()));
+        expressions.put(currentState.getName(),binaryExpr);
+        System.out.println(binaryExpr);
+
+    }
+
+    @Override public void enterUnaryexpr(ArduinomlParser.UnaryexprContext ctx) {
+        UnaryExpr unary = new UnaryExpr();
+
+        if( ctx.condition().sensorcondition()!=null){
+            SensorCondition sensorCondition = new SensorCondition();
+            sensorCondition.setSensor(sensors.get(ctx.condition().sensorcondition().trigger.getText()));
+            sensorCondition.setValue(CONDITION.valueOf(ctx.condition().sensorcondition().value.getText()));
+            unary.setCondition(sensorCondition);
+        }
+        else{
+            TimeCondition timeCondition = new TimeCondition();
+            timeCondition.setTime(Integer.parseInt(ctx.condition().timecondition().trigger.getText()));
+            unary.setCondition(timeCondition);
+        }
+
+
+        expressions.put(currentState.getName(),unary);
+
+    }
+
 
 }
 

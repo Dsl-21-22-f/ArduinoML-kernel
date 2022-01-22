@@ -1,17 +1,21 @@
 application simpleAlarm
 
 # Declaring bricks
-sensor button: 9
-sensor button2: 12
+sensor button: 8
+actuator led: 12
 actuator buzzer: 11
 
 # Declaring states
 on {
     buzzer <= HIGH
-    button is LOW OR button2 is LOW => off
+     led <= HIGH
+
+    button is LOW => off
 }
 
 -> off {
     buzzer <= LOW
-    button is HIGH AND button2 is HIGH => on
+    led <= LOW
+
+    button is HIGH => on
 }
