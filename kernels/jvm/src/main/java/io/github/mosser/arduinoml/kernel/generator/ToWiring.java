@@ -138,56 +138,51 @@ public class ToWiring extends Visitor<StringBuffer> {
 		if(context.get("pass") == PASS.THREE) {
 			Expr expr = transition.getExpr();
 			System.out.println(expr.getExprType());
-			if(expr.getExprType()==ExprType.BINARY){
-				String sensorName = ((BinaryExpr) expr).getLeft().getSensor().getName();
-				w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-						sensorName, sensorName));
-				String sensorName2 = ((BinaryExpr) expr).getRight().getSensor().getName();
-				w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-						sensorName2, sensorName2));
+			if(expr.getExprType()==ExprType.UNARY){
+				String sensorName = ((UnaryExpr) expr).getSensor().getName();
+				printDebounceGuard(sensorName);
 			}
 			else{
-				String sensorName = ((UnaryExpr) expr).getSensor().getName();
-				w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-						sensorName, sensorName));
+				String sensorName = ((BinaryExpr) expr).getLeft().getSensor().getName();
+				printDebounceGuard(sensorName);
+				String sensorName2 = ((BinaryExpr) expr).getRight().getSensor().getName();
+				printDebounceGuard(sensorName2);
 			}
-
-
+			//
+			w(String.format("\t\t\tif("));
 			if(expr.getExprType()==ExprType.UNARY){
 				String sensorName = ((UnaryExpr) expr).getSensor().getName();
 				if(((UnaryExpr)expr).getValue()==SIGNAL.PUSHED){
-					w(String.format("\t\t\tif( %sLastState != %sState && %sBounceGuard && %sState == HIGH) {\n", sensorName,sensorName,sensorName,sensorName));
+					printPushedCondition(sensorName);
 				}
 				else{
-					w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
-							((UnaryExpr)expr).getSensor().getPin(), ((UnaryExpr)expr).getValue(), sensorName));
+					printSignalCondition(((UnaryExpr)expr).getSensor(), ((UnaryExpr)expr).getValue());
 				}
-
 			}
 			else{
-				w(String.format("\t\t\tif("));
 				String sensorNameLeft = ((BinaryExpr) expr).getLeft().getSensor().getName();
 				if(((BinaryExpr) expr).getLeft().getValue()==SIGNAL.PUSHED){
-					w(String.format("   %sLastState != %sState && %sBounceGuard && %sState == HIGH\n", sensorNameLeft,sensorNameLeft,sensorNameLeft,sensorNameLeft));
+					printPushedCondition(sensorNameLeft);
 				}
 				else{
-					w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
-							((BinaryExpr)expr).getLeft().getSensor().getPin(), ((BinaryExpr)expr).getLeft().getValue(), sensorNameLeft));
+					printSignalCondition(((BinaryExpr)expr).getLeft().getSensor(), ((BinaryExpr)expr).getLeft().getValue());
 				}
+				//OPERATOR
 				w(String.format(" %s ",
 						((BinaryExpr)expr).getOperator().getValue()));
 				String sensorNameRight = ((BinaryExpr) expr).getRight().getSensor().getName();
+
 				if(((BinaryExpr) expr).getRight().getValue()==SIGNAL.PUSHED){
-					w(String.format("   %sLastState != %sState && %sBounceGuard && %sState == HIGH\n", sensorNameRight,sensorNameRight,sensorNameRight,sensorNameRight));
+					printPushedCondition(sensorNameRight);
 				}
 				else{
-					w(String.format("(digitalRead(%d) == %s && %sBounceGuard))",
-							((BinaryExpr)expr).getRight().getSensor().getPin(), ((BinaryExpr)expr).getRight().getValue(), sensorNameRight));
+					 printSignalCondition(((BinaryExpr)expr).getRight().getSensor(), ((BinaryExpr)expr).getRight().getValue());
 				}
 
-				w(String.format(" {\n"));
 
 			}
+			w(String.format("){\n"));
+
 
 			w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 			w("\t\t\t}\n");
@@ -195,6 +190,19 @@ public class ToWiring extends Visitor<StringBuffer> {
 		}
 	}
 
+	void printPushedCondition(String sensorName){
+		w(String.format("   (%sLastState != %sState && %sBounceGuard && %sState == HIGH)", sensorName,sensorName,sensorName,sensorName));
+	}
+
+	void printSignalCondition(Sensor sensor, SIGNAL signal){
+		w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
+				sensor.getPin(), signal, sensor.getName()));
+	}
+
+	void printDebounceGuard(String sensorName){
+		w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+				sensorName, sensorName));
+	}
 
 
 	@Override
