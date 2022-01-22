@@ -57,8 +57,8 @@ public class Switch {
 		off2on.setExpr(expr2);
 
 		// Binding transitions to states
-		on.setTransition(on2off);
-		off.setTransition(off2on);
+		//on.setTransition(on2off);
+		//off.setTransition(off2on);
 
 		// Building the App
 		App theSwitch = new App();

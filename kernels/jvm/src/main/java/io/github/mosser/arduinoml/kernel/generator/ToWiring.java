@@ -168,11 +168,10 @@ public class ToWiring extends Visitor<StringBuffer> {
 			for (Action action : state.getActions()) {
 				action.accept(this);
 			}
-
-			if (state.getTransition() != null) {
-				state.getTransition().accept(this);
-				w("\t\tbreak;\n");
+			for (Transition transition : state.getTransitions()) {
+				transition.accept(this);
 			}
+			w("\t\tbreak;\n");
 			return;
 		}
 
@@ -182,19 +181,14 @@ public class ToWiring extends Visitor<StringBuffer> {
 	@Override
 	public void visit(Transition transition) {
 		if(context.get("pass") == PASS.FOUR) {
-			System.out.println(transition.getExpr());
 			Expr expr = transition.getExpr();
-			System.out.println(expr.getExprType());
 			if (expr.getExprType() == ExprType.UNARY) {
-				System.out.println("UNARY");
 				if((((UnaryExpr) expr).getCondition()).getType()==ConditionType.SENSOR){
 					String sensorName = ((SensorCondition) ((UnaryExpr) expr).getCondition()).getSensor().getName();
 					printDebounceGuard(sensorName);
 				}
 
 			} else {
-				System.out.println("BINARY");
-
 				if((((BinaryExpr) expr).getLeft().getCondition()).getType()==ConditionType.SENSOR){
 					String sensorName = ((SensorCondition) ((BinaryExpr) expr).getLeft().getCondition()).getSensor().getName();
 					printDebounceGuard(sensorName);

@@ -9,7 +9,9 @@ import io.github.mosser.arduinoml.kernel.structural.Actuator;
 import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
 import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ModelBuilder extends ArduinomlBaseListener {
@@ -33,7 +35,7 @@ public class ModelBuilder extends ArduinomlBaseListener {
     private Map<String, Sensor>   sensors   = new HashMap<>();
     private Map<String, Actuator> actuators = new HashMap<>();
     private Map<String, State>    states  = new HashMap<>();
-    private Map<String, Binding>  bindings  = new HashMap<>();
+    private Map<String, List<Binding>>  bindings  = new HashMap<>();
 
     private Map<String, BinaryExpr>  binarys  = new HashMap<>();
     private Map<String, UnaryExpr>  unarys  = new HashMap<>();
@@ -61,11 +63,14 @@ public class ModelBuilder extends ArduinomlBaseListener {
 
     @Override public void exitRoot(ArduinomlParser.RootContext ctx) {
         // Resolving states in transitions
-        bindings.forEach((key, binding) ->  {
-            Transition t = new Transition();
-            t.setExpr(binding.expr);
-            t.setNext(states.get(binding.to));
-            states.get(key).setTransition(t);
+        bindings.forEach((key, bindings) ->  {
+            for(Binding b : bindings){
+                Transition t = new Transition();
+                t.setExpr(b.expr);
+                t.setNext(states.get(b.to));
+                states.get(key).getTransitions().add(t);
+            }
+
         });
         this.built = true;
     }
@@ -107,6 +112,7 @@ public class ModelBuilder extends ArduinomlBaseListener {
         this.currentState = null;
     }
 
+
     @Override
     public void enterAction(ArduinomlParser.ActionContext ctx) {
         Action action = new Action();
@@ -126,7 +132,17 @@ public class ModelBuilder extends ArduinomlBaseListener {
         else{
             toBeResolvedLater.expr    = unarys.get(currentState.getName());
         }
-        bindings.put(currentState.getName(), toBeResolvedLater);
+
+        if(bindings.get(currentState.getName())!=null){
+            bindings.get(currentState.getName()).add(toBeResolvedLater);
+        }
+        else{
+            List<Binding> list = new ArrayList<>();
+            list.add(toBeResolvedLater);
+            bindings.put(currentState.getName(), list);
+
+        }
+        //bindings.put(currentState.getName(), );
     }
 
 
@@ -171,8 +187,6 @@ public class ModelBuilder extends ArduinomlBaseListener {
         binaryExpr.setRight(right);
         binaryExpr.setOperator(OPERATOR.valueOf(ctx.operator.getText()));
         binarys.put(currentState.getName(),binaryExpr);
-        System.out.println(binaryExpr);
-        System.out.println(currentState.getName());
 
     }
 
@@ -190,10 +204,7 @@ public class ModelBuilder extends ArduinomlBaseListener {
             timeCondition.setTime(Integer.parseInt(ctx.condition().timecondition().trigger.getText()));
             unary.setCondition(timeCondition);
         }
-
-
         unarys.put(currentState.getName(),unary);
-        System.out.println(currentState.getName());
 
     }
 
