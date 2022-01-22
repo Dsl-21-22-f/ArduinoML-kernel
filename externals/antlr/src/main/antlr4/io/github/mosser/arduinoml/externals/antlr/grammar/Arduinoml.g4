@@ -20,8 +20,8 @@ states          :   state+;
     transition  :   condition=expr '=>' next=IDENTIFIER;
     initial     :   '->';
 
-expr            :   (unaryexpr|binaryexpr)+;
-    unaryexpr   :   trigger=IDENTIFIER 'is' value=SIGNAL;
+expr            :   (unaryexpr|binaryexpr);
+    unaryexpr   :   trigger=IDENTIFIER 'is' value=(BUTTONSTATE|SIGNAL);
     binaryexpr  :   expr1=unaryexpr operator=OPERATOR expr2=unaryexpr;
 
 /*****************
@@ -29,7 +29,8 @@ expr            :   (unaryexpr|binaryexpr)+;
  *****************/
 PORT_NUMBER     :   [1-9] | '11' | '12';
 IDENTIFIER      :   LOWERCASE (LOWERCASE|UPPERCASE)+;
-SIGNAL          :   'HIGH' | 'LOW' | 'PUSHED';
+BUTTONSTATE     :   'PUSHED';
+SIGNAL          :   'HIGH' | 'LOW';
 OPERATOR        :     'OR' | 'AND';
 /*************
  ** Helpers **

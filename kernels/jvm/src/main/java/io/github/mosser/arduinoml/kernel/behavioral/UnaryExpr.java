@@ -6,7 +6,7 @@ import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
 public class UnaryExpr extends Expr{
 
-    private SIGNAL value;
+    private CONDITION value;
 
     private Sensor sensor;
 
@@ -19,11 +19,11 @@ public class UnaryExpr extends Expr{
         return this.type;
     }
 
-    public SIGNAL getValue() {
+    public CONDITION getValue() {
         return value;
     }
 
-    public void setValue(SIGNAL value) {
+    public void setValue(CONDITION value) {
         this.value = value;
     }
 

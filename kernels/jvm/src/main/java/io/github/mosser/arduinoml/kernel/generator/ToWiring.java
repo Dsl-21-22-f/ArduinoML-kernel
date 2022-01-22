@@ -152,7 +152,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			w(String.format("\t\t\tif("));
 			if(expr.getExprType()==ExprType.UNARY){
 				String sensorName = ((UnaryExpr) expr).getSensor().getName();
-				if(((UnaryExpr)expr).getValue()==SIGNAL.PUSHED){
+				if(((UnaryExpr)expr).getValue()==CONDITION.PUSHED){
 					printPushedCondition(sensorName);
 				}
 				else{
@@ -161,7 +161,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			}
 			else{
 				String sensorNameLeft = ((BinaryExpr) expr).getLeft().getSensor().getName();
-				if(((BinaryExpr) expr).getLeft().getValue()==SIGNAL.PUSHED){
+				if(((BinaryExpr) expr).getLeft().getValue()==CONDITION.PUSHED){
 					printPushedCondition(sensorNameLeft);
 				}
 				else{
@@ -172,7 +172,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 						((BinaryExpr)expr).getOperator().getValue()));
 				String sensorNameRight = ((BinaryExpr) expr).getRight().getSensor().getName();
 
-				if(((BinaryExpr) expr).getRight().getValue()==SIGNAL.PUSHED){
+				if(((BinaryExpr) expr).getRight().getValue()==CONDITION.PUSHED){
 					printPushedCondition(sensorNameRight);
 				}
 				else{
@@ -194,7 +194,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 		w(String.format("   (%sLastState != %sState && %sBounceGuard && %sState == HIGH)", sensorName,sensorName,sensorName,sensorName));
 	}
 
-	void printSignalCondition(Sensor sensor, SIGNAL signal){
+	void printSignalCondition(Sensor sensor, CONDITION signal){
 		w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
 				sensor.getPin(), signal, sensor.getName()));
 	}
