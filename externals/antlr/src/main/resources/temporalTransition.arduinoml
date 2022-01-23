@@ -1,0 +1,17 @@
+application stateBasedAlarm
+
+# Declaring bricks
+sensor button: 8
+actuator led: 11
+
+# Declaring states
+onLed {
+    led <= HIGH
+    after 800 ms => offLed
+}
+
+-> offLed {
+    led <= LOW
+    button is PUSHED => onLed
+}
+

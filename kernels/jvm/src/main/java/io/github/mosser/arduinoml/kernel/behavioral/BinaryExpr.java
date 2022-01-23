@@ -42,4 +42,9 @@ public class BinaryExpr extends Expr {
     public void setRight(UnaryExpr right) {
         this.right = right;
     }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

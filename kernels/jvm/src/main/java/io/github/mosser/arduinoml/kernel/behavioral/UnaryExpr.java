@@ -6,9 +6,7 @@ import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
 public class UnaryExpr extends Expr{
 
-    private CONDITION value;
-
-    private Sensor sensor;
+    private AbstractCondition condition;
 
     private final ExprType type = ExprType.UNARY;
 
@@ -19,21 +17,16 @@ public class UnaryExpr extends Expr{
         return this.type;
     }
 
-    public CONDITION getValue() {
-        return value;
+    public AbstractCondition getCondition() {
+        return condition;
     }
 
-    public void setValue(CONDITION value) {
-        this.value = value;
+    public void setCondition(AbstractCondition condition) {
+        this.condition = condition;
     }
 
-    public Sensor getSensor() {
-        return sensor;
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
     }
-
-    public void setSensor(Sensor sensor) {
-        this.sensor = sensor;
-    }
-
-
 }
