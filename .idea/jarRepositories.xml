@@ -7,6 +7,11 @@
       <option name="url" value="https://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="snapshots" />
+      <option name="name" value="Isa-DevOps-libs-snapshot" />
+      <option name="url" value="http://134.59.213.137:8002/artifactory/Isa-DevOps-libs-snapshot-local" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="archetype" />
       <option name="name" value="archetype" />
       <option name="url" value="https://www.irit.fr/archiva/repository/public-ics/" />

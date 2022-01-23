@@ -21,4 +21,7 @@
       <module name="root" target="1.5" />
     </bytecodeTargetLevel>
   </component>
+  <component name="GreclipseSettings">
+    <option name="greclipsePath" value="$MAVEN_REPOSITORY$/org/codehaus/groovy/groovy-eclipse-batch/2.3.7-01/groovy-eclipse-batch-2.3.7-01.jar" />
+  </component>
 </project>
