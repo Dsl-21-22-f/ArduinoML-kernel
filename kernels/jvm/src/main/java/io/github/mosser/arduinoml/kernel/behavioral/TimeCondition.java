@@ -6,8 +6,6 @@ public class TimeCondition extends  AbstractCondition{
 
     private int time;
 
-    private final ConditionType type = ConditionType.TIME;
-
     public int getTime() {
         return time;
     }
@@ -21,8 +19,4 @@ public class TimeCondition extends  AbstractCondition{
         visitor.visit(this);
     }
 
-    @Override
-    public ConditionType getType() {
-        return type;
-    }
 }

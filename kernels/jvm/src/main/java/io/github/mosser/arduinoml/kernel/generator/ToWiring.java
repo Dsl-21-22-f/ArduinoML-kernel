@@ -182,57 +182,18 @@ public class ToWiring extends Visitor<StringBuffer> {
 	public void visit(Transition transition) {
 		if(context.get("pass") == PASS.FOUR) {
 			Expr expr = transition.getExpr();
-			if (expr.getExprType() == ExprType.UNARY) {
-				if((((UnaryExpr) expr).getCondition()).getType()==ConditionType.SENSOR){
-					String sensorName = ((SensorCondition) ((UnaryExpr) expr).getCondition()).getSensor().getName();
-					printDebounceGuard(sensorName);
-				}
-
-			} else {
-				if((((BinaryExpr) expr).getLeft().getCondition()).getType()==ConditionType.SENSOR){
-					String sensorName = ((SensorCondition) ((BinaryExpr) expr).getLeft().getCondition()).getSensor().getName();
-					printDebounceGuard(sensorName);
-				}
-				if((((BinaryExpr) expr).getRight().getCondition()).getType()==ConditionType.SENSOR){
-					String sensorName2 = ((SensorCondition) ((BinaryExpr) expr).getRight().getCondition()).getSensor().getName();
-					printDebounceGuard(sensorName2);
-				}
-
-
-
-			}
+			w(expr.beforeExpr());
 			//Conditions
 			w(String.format("\t\t\tif("));
 			expr.accept(this);
 			w(String.format("){\n"));
-			if(expr.getExprType() == ExprType.UNARY){
-				if((((UnaryExpr) expr).getCondition()).getType()==ConditionType.SENSOR) {
-					printDebounceButton(((UnaryExpr) expr));
-				}
-			}
-			else{
-				if((((BinaryExpr) expr).getLeft().getCondition()).getType()==ConditionType.SENSOR) {
-
-					printDebounceButton(((BinaryExpr) expr).getLeft());
-				}
-				if((((BinaryExpr) expr).getRight().getCondition()).getType()==ConditionType.SENSOR) {
-
-					printDebounceButton(((BinaryExpr) expr).getRight());
-				}
-			}
+			w(expr.afterExpr());
 			w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
 			w("\t\t\t\ttimer = millis();\n");
 
 			w("\t\t\t}\n");
 			return;
 		}
-	}
-
-	void printDebounceButton(UnaryExpr expr){
-		if(((SensorCondition) expr.getCondition()).getSensor()!=null){
-			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", ((SensorCondition) expr.getCondition()).getSensor().getName()));
-		}
-
 	}
 
 	void printPushedCondition(String sensorName){
@@ -242,11 +203,6 @@ public class ToWiring extends Visitor<StringBuffer> {
 	void printSignalCondition(Sensor sensor, CONDITION signal){
 		w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
 				sensor.getPin(), signal, sensor.getName()));
-	}
-
-	void printDebounceGuard(String sensorName){
-		w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-				sensorName, sensorName));
 	}
 
 

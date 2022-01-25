@@ -6,18 +6,11 @@ public class BinaryExpr extends Expr {
 
     private OPERATOR operator;
 
-    private UnaryExpr left;
+    private Expr left;
 
-    private UnaryExpr right;
-
-    private final ExprType type = ExprType.BINARY;
+    private Expr right;
 
 
-
-    @Override
-    public ExprType getExprType() {
-        return this.type;
-    }
 
     public OPERATOR getOperator() {
         return operator;
@@ -27,24 +20,34 @@ public class BinaryExpr extends Expr {
         this.operator = operator;
     }
 
-    public UnaryExpr getLeft() {
+    public Expr getLeft() {
         return left;
     }
 
-    public void setLeft(UnaryExpr left) {
+    public void setLeft(Expr left) {
         this.left = left;
     }
 
-    public UnaryExpr getRight() {
+    public Expr getRight() {
         return right;
     }
 
-    public void setRight(UnaryExpr right) {
+    public void setRight(Expr right) {
         this.right = right;
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public String beforeExpr() {
+        return left.beforeExpr() +right.beforeExpr();
+    }
+
+    @Override
+    public String afterExpr() {
+        return left.afterExpr() +right.afterExpr();
     }
 }

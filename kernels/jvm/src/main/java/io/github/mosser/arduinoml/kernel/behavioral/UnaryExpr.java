@@ -8,15 +8,6 @@ public class UnaryExpr extends Expr{
 
     private AbstractCondition condition;
 
-    private final ExprType type = ExprType.UNARY;
-
-
-
-    @Override
-    public ExprType getExprType() {
-        return this.type;
-    }
-
     public AbstractCondition getCondition() {
         return condition;
     }
@@ -29,4 +20,22 @@ public class UnaryExpr extends Expr{
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String beforeExpr() {
+        if( condition instanceof SensorCondition) {
+            String sensorName = ((SensorCondition) this.condition).getSensor().getName();
+            return String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+                    sensorName, sensorName);
+        }
+        return "";
+    }
+
+    @Override
+    public String afterExpr() {
+        if( condition instanceof SensorCondition) {
+            String sensorName = ((SensorCondition) this.condition).getSensor().getName();
+            return String.format("\t\t\t\t%sLastDebounceTime = millis();\n", sensorName);
+        }
+        return "";    }
 }
