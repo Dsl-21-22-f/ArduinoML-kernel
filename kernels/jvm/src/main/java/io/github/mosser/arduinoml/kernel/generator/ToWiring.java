@@ -103,15 +103,18 @@ public class ToWiring extends Visitor<StringBuffer> {
 			return;
 		}
 		if(context.get("pass") == PASS.THREE) {
-			w(String.format("   %sState = digitalRead(%d);\n", sensor.getName(), sensor.getPin()));
+			w(String.format(" %sState = digitalRead(%d);\n", sensor.getName(), sensor.getPin()));
 			return;
 		}
 		if(context.get("pass") == PASS.FOUR) {
 			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", sensor.getName()));
 			return;
 		}
+		if(context.get("pass")==PASS.FIVE){
+			w(String.format("\t\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
+					sensor.getName(), sensor.getName()));
+		}
 		if(context.get("pass") == PASS.SIX) {
-			printDebounceGuard(sensor.getName());
 			w(String.format("   %sLastState = %sState;\n", sensor.getName(),sensor.getName() ));
 			return;
 		}
@@ -132,15 +135,18 @@ public class ToWiring extends Visitor<StringBuffer> {
 
 	@Override
 	public void visit(SensorCondition sensorCondition) {
+
 		if(context.get("pass") == PASS.FOUR) {
 			if(sensorCondition.getValue()==CONDITION.PUSHED){
-				printPushedCondition(sensorCondition.getSensor().getName());
+				String sensorName = sensorCondition.getSensor().getName();
+				w(String.format("   (%sLastState != %sState && %sBounceGuard && %sState == HIGH)", sensorName,sensorName,sensorName,sensorName));
 			}
 			else{
-				printSignalCondition(sensorCondition.getSensor(), sensorCondition.getValue());
+				w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
+						sensorCondition.getSensor().getPin(), sensorCondition.getValue(), sensorCondition.getSensor().getName()));
 			}
 		}
-		if(context.get("pass") == PASS.SIX) {
+		if(context.get("pass") == PASS.FIVE || context.get("pass") == PASS.SIX) {
 			sensorCondition.getSensor().accept(this);
 		}
 
@@ -170,21 +176,26 @@ public class ToWiring extends Visitor<StringBuffer> {
 
 	@Override
 	public void visit(Transition transition) {
+		w(String.format("\t\t\tif(")); //IF
+		//Time condition
 		if(transition.getTimeCondition()!=null){
-			w(String.format("\t\t\tif("));
 			transition.getTimeCondition().accept(this);
-
+			if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0){
+				w(String.format(" AND "));
+			}
 		}
+		//Sensor Condition
 		if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0) {
 			for (int i = 0; i < transition.getSensorConditions().size(); i++) {
 				transition.getSensorConditions().get(i).accept(this);
-				if (i + 1 < transition.getSensorConditions().size()) {
-					w(String.format(" && "));
+				if (i+1  < transition.getSensorConditions().size()) {
+					w(String.format(" AND "));
 				}
 			}
 		}
-		w(String.format("){\n"));
-		context.put("pass",PASS.FOUR);
+		w(String.format("){\n")); // FIN IF
+		context.put("pass",PASS.FIVE);
+
 		if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0) {
 			for(SensorCondition sensorCondition : transition.getSensorConditions()) {
 				sensorCondition.accept(this);
@@ -199,19 +210,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 	}
 
 
-	void printPushedCondition(String sensorName){
-		w(String.format("   (%sLastState != %sState && %sBounceGuard && %sState == HIGH)", sensorName,sensorName,sensorName,sensorName));
-	}
 
-	void printSignalCondition(Sensor sensor, CONDITION signal){
-		w(String.format("(digitalRead(%d) == %s && %sBounceGuard)",
-				sensor.getPin(), signal, sensor.getName()));
-	}
-
-	void printDebounceGuard(String sensorName){
-		w(String.format("\t\t\t%sBounceGuard = millis() - %sLastDebounceTime > debounce;\n",
-				sensorName, sensorName));
-	}
 
 
 	@Override

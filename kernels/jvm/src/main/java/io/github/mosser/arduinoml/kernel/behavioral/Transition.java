@@ -4,6 +4,7 @@ import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Transition implements Visitable {
@@ -37,6 +38,9 @@ public class Transition implements Visitable {
 
 	public void addSensorCondition(SensorCondition sensorCondition){
 		if(sensorCondition!=null){
+			if(this.sensorConditions==null){
+				this.sensorConditions = new ArrayList<>();
+			}
 			this.sensorConditions.add(sensorCondition);
 		}
 	}

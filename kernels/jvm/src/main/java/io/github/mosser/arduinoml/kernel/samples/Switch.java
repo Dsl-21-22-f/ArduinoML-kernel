@@ -43,7 +43,17 @@ public class Switch {
 		time1.setTime(1000);
 		t1.setTimeCondition(time1);
 		t1.setNext(on);
+		SensorCondition s1 = new SensorCondition();
+		s1.setSensor(button);
+		s1.setValue(CONDITION.HIGH);
+		t1.addSensorCondition(s1);
+
+		SensorCondition s2= new SensorCondition();
+		s2.setSensor(button);
+		s2.setValue(CONDITION.LOW);
+		t1.addSensorCondition(s2);
 		off.addTransition(t1);
+
 		// Binding actions to states
 		on.setActions(Arrays.asList(switchTheLightOn));
 		off.setActions(Arrays.asList(switchTheLightOff));
