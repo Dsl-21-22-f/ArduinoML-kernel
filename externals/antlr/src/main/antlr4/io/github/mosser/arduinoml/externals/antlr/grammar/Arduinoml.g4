@@ -17,11 +17,11 @@ bricks          :   (sensor|actuator)+;
 states                  :   state+;
     state               :   initial? name=IDENTIFIER '{'  action+ abstractTransition+'}';
     action              :   receiver=IDENTIFIER '<=' value=SIGNAL;
-    abstractTransition  :   expression=TransitionList '=>' next=IDENTIFIER;
+    abstractTransition  :   expression=transitionList '=>' next=IDENTIFIER;
     initial             :   '->';
 
 transitionList       :  transitionList 'OR' transitionList
-                     |  transition;
+                     |  transition ;
 
 transition           :  (timecondition | sensorcondition |timeAndSensorCondition |sensorConditionList);
     timecondition           :   'after' trigger=NUMBER 'ms';

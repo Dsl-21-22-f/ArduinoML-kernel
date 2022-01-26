@@ -9,10 +9,7 @@ import io.github.mosser.arduinoml.kernel.structural.Actuator;
 import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
 import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ModelBuilder extends ArduinomlBaseListener {
 
@@ -35,21 +32,22 @@ public class ModelBuilder extends ArduinomlBaseListener {
     private Map<String, Sensor>   sensors   = new HashMap<>();
     private Map<String, Actuator> actuators = new HashMap<>();
     private Map<String, State>    states  = new HashMap<>();
+    private List<TimeCondition>    timeConditions = new ArrayList<>();
+    private List<SensorCondition>    sensorConditions  = new ArrayList<>();
     private Map<String, List<Binding>>  bindings  = new HashMap<>();
-
-    private Map<String, BinaryExpr>  binarys  = new HashMap<>();
-    private Map<String, UnaryExpr>  unarys  = new HashMap<>();
 
 
 
     private class Binding { // used to support state resolution for transitions
         String to; // name of the next state, as its instance might not have been compiled yet
-        Expr expr;
+        TimeCondition timeCondition;
+        List<SensorCondition> sensorConditions;
     }
 
 
 
     private State currentState = null;
+    private String currentNext = null;
 
     /**************************
      ** Listening mechanisms **
@@ -66,8 +64,9 @@ public class ModelBuilder extends ArduinomlBaseListener {
         bindings.forEach((key, bindings) ->  {
             for(Binding b : bindings){
                 Transition t = new Transition();
-                t.setExpr(b.expr);
                 t.setNext(states.get(b.to));
+                t.setSensorConditions(b.sensorConditions);
+                t.setTimeCondition(b.timeCondition);
                 states.get(key).getTransitions().add(t);
             }
 
@@ -120,94 +119,55 @@ public class ModelBuilder extends ArduinomlBaseListener {
         action.setValue(SIGNAL.valueOf(ctx.value.getText()));
         currentState.getActions().add(action);
     }
+    @Override
+    public void enterAbstractTransition(ArduinomlParser.AbstractTransitionContext ctx) {
+        // Creating a placeholder as the next state might not have been compiled yet.
+        this.currentNext = ctx.next.getText();
+    }
+    @Override
+    public void exitAbstractTransition(ArduinomlParser.AbstractTransitionContext ctx) {
+        // Creating a placeholder as the next state might not have been compiled yet.
 
+    }
     @Override
     public void exitTransition(ArduinomlParser.TransitionContext ctx) {
-        // Creating a placeholder as the next state might not have been compiled yet.
         Binding toBeResolvedLater = new Binding();
-        toBeResolvedLater.to      = ctx.next.getText();
-        if(binarys.get(currentState.getName())!=null){
-            toBeResolvedLater.expr    = binarys.get(currentState.getName());
-        }
-        else{
-            toBeResolvedLater.expr    = unarys.get(currentState.getName());
-        }
+        toBeResolvedLater.to = this.currentNext;
+        toBeResolvedLater.sensorConditions = new ArrayList<>(sensorConditions);
+        if (!timeConditions.isEmpty())
+            toBeResolvedLater.timeCondition = timeConditions.get(0);
 
-        if(bindings.get(currentState.getName())!=null){
+        if (bindings.get(currentState.getName()) != null) {
             bindings.get(currentState.getName()).add(toBeResolvedLater);
-        }
-        else{
+        } else {
             List<Binding> list = new ArrayList<>();
             list.add(toBeResolvedLater);
             bindings.put(currentState.getName(), list);
 
         }
-        //bindings.put(currentState.getName(), );
+        sensorConditions.clear();
+        timeConditions.clear();
     }
-
-
-
-    @Override
+        @Override
     public void enterInitial(ArduinomlParser.InitialContext ctx) {
         this.theApp.setInitial(this.currentState);
     }
 
-    @Override public void enterBinaryexpr(ArduinomlParser.BinaryexprContext ctx) {
-        BinaryExpr binaryExpr = new BinaryExpr();
-        UnaryExpr left = new UnaryExpr();
-        UnaryExpr right = new UnaryExpr();
 
-        if( ctx.expr1.condition().sensorcondition()!=null){
-            SensorCondition sensorCondition = new SensorCondition();
-            sensorCondition.setSensor(sensors.get(ctx.expr1.condition().sensorcondition().trigger.getText()));
-            sensorCondition.setValue(CONDITION.valueOf(ctx.expr1.condition().sensorcondition().value.getText()));
-            left.setCondition(sensorCondition);
-        }
-        else{
-            TimeCondition timeCondition = new TimeCondition();
-            timeCondition.setTime(Integer.parseInt(ctx.expr1.condition().timecondition().trigger.getText()));
-            left.setCondition(timeCondition);
-        }
-
-        if( ctx.expr2.condition().sensorcondition()!=null){
-            SensorCondition sensorCondition = new SensorCondition();
-            sensorCondition.setSensor(sensors.get(ctx.expr2.condition().sensorcondition().trigger.getText()));
-            sensorCondition.setValue(CONDITION.valueOf(ctx.expr2.condition().sensorcondition().value.getText()));
-            right.setCondition(sensorCondition);
-
-        }
-        else{
-            TimeCondition timeCondition = new TimeCondition();
-            timeCondition.setTime(Integer.parseInt(ctx.expr2.condition().timecondition().trigger.getText()));
-            right.setCondition(timeCondition);
-        }
-
-
-        binaryExpr.setLeft(left);
-        binaryExpr.setRight(right);
-        binaryExpr.setOperator(OPERATOR.valueOf(ctx.operator.getText()));
-        binarys.put(currentState.getName(),binaryExpr);
-
+    @Override
+    public void enterTimecondition(ArduinomlParser.TimeconditionContext ctx) {
+        TimeCondition timeCondition = new TimeCondition();
+        timeCondition.setTime(+Integer.parseInt(ctx.trigger.getText()));
+        this.timeConditions.add(timeCondition);
     }
 
-    @Override public void enterUnaryexpr(ArduinomlParser.UnaryexprContext ctx) {
-        UnaryExpr unary = new UnaryExpr();
-
-        if( ctx.condition().sensorcondition()!=null){
-            SensorCondition sensorCondition = new SensorCondition();
-            sensorCondition.setSensor(sensors.get(ctx.condition().sensorcondition().trigger.getText()));
-            sensorCondition.setValue(CONDITION.valueOf(ctx.condition().sensorcondition().value.getText()));
-            unary.setCondition(sensorCondition);
-        }
-        else{
-            TimeCondition timeCondition = new TimeCondition();
-            timeCondition.setTime(Integer.parseInt(ctx.condition().timecondition().trigger.getText()));
-            unary.setCondition(timeCondition);
-        }
-        unarys.put(currentState.getName(),unary);
-
+    @Override
+    public void enterSensorcondition(ArduinomlParser.SensorconditionContext ctx) {
+        SensorCondition sensorCondition = new SensorCondition();
+        sensorCondition.setSensor(sensors.get(ctx.trigger.getText()));
+        sensorCondition.setValue(CONDITION.valueOf(ctx.value.getText()));
+        this.sensorConditions.add(sensorCondition);
     }
-
 
 }
 
