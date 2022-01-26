@@ -14,18 +14,24 @@ bricks          :   (sensor|actuator)+;
     actuator    :   'actuator' location ;
     location    :   id=IDENTIFIER ':' port=PORT_NUMBER;
 
-states          :   state+;
-    state       :   initial? name=IDENTIFIER '{'  action+ transition+'}';
-    action      :   receiver=IDENTIFIER '<=' value=SIGNAL;
-    transition  :   expression=expr '=>' next=IDENTIFIER;
-    initial     :   '->';
+states                  :   state+;
+    state               :   initial? name=IDENTIFIER '{'  action+ abstractTransition+'}';
+    action              :   receiver=IDENTIFIER '<=' value=SIGNAL;
+    abstractTransition  :   expression=TransitionList '=>' next=IDENTIFIER;
+    initial             :   '->';
 
-expr            :   (unaryexpr|binaryexpr);
-    unaryexpr   :   condition;
-    binaryexpr  :   expr1=unaryexpr operator=OPERATOR expr2=unaryexpr;
-condition       :   (timecondition|sensorcondition);
-    timecondition:  'after' trigger=NUMBER 'ms';
-    sensorcondition: trigger=IDENTIFIER 'is' value=(BUTTONSTATE|SIGNAL);
+transitionList       :  transitionList 'OR' transitionList
+                     |  transition;
+
+transition           :  (timecondition | sensorcondition |timeAndSensorCondition |sensorConditionList);
+    timecondition           :   'after' trigger=NUMBER 'ms';
+    sensorcondition         :   trigger=IDENTIFIER 'is' value=(BUTTONSTATE|SIGNAL);
+    timeAndSensorCondition  :   (sensorConditionList 'AND')? timecondition ('AND' sensorConditionList)?;
+    sensorConditionList     :   sensorcondition ('AND' sensorcondition)*;
+
+
+
+
 
 /*****************
  ** Lexer rules **
@@ -35,7 +41,6 @@ NUMBER          :   [0-9]+;
 IDENTIFIER      :   LOWERCASE (LOWERCASE|UPPERCASE)+;
 BUTTONSTATE     :   'PUSHED';
 SIGNAL          :   'HIGH' | 'LOW';
-OPERATOR        :     'OR' | 'AND';
 /*************
  ** Helpers **
  *************/
