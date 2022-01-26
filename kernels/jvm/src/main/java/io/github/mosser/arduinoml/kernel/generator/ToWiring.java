@@ -175,15 +175,17 @@ public class ToWiring extends Visitor<StringBuffer> {
 			transition.getTimeCondition().accept(this);
 
 		}
-		if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0){
-			for(int i =0; i<transition.getSensorConditions().size(); i++){
+		if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0) {
+			for (int i = 0; i < transition.getSensorConditions().size(); i++) {
 				transition.getSensorConditions().get(i).accept(this);
-				if(i+1<transition.getSensorConditions().size()){
+				if (i + 1 < transition.getSensorConditions().size()) {
 					w(String.format(" && "));
 				}
 			}
-			w(String.format("){\n"));
-			context.put("pass",PASS.FOUR);
+		}
+		w(String.format("){\n"));
+		context.put("pass",PASS.FOUR);
+		if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0) {
 			for(SensorCondition sensorCondition : transition.getSensorConditions()) {
 				sensorCondition.accept(this);
 			}

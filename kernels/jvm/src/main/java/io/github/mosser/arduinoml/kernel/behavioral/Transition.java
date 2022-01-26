@@ -44,6 +44,8 @@ public class Transition implements Visitable {
 		this.sensorConditions = sensorConditions;
 	}
 
+
+
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);

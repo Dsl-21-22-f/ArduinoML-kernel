@@ -6,6 +6,7 @@ import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.*;
 
+import java.sql.Time;
 import java.util.Arrays;
 
 public class Switch {
@@ -37,28 +38,18 @@ public class Switch {
 		switchTheLightOff.setActuator(led);
 		switchTheLightOff.setValue(SIGNAL.LOW);
 
+		Transition t1 = new Transition();
+		TimeCondition time1 = new TimeCondition();
+		time1.setTime(1000);
+		t1.setTimeCondition(time1);
+		t1.setNext(on);
+		off.addTransition(t1);
 		// Binding actions to states
 		on.setActions(Arrays.asList(switchTheLightOn));
 		off.setActions(Arrays.asList(switchTheLightOff));
 
 		// Creating transitions
-		/*Transition on2off = new Transition();
-		UnaryExpr expr = new UnaryExpr();
-		//expr.setSensor(button);
-		//expr.setValue(CONDITION.HIGH);
-		on2off.setNext(off);
-		on2off.setExpr(expr);
 
-		Transition off2on = new Transition();
-		UnaryExpr expr2 = new UnaryExpr();
-		off2on.setNext(on);
-		//expr2.setSensor(button);
-		//expr2.setValue(CONDITION.HIGH);
-		off2on.setExpr(expr2);
-
-		// Binding transitions to states
-		//on.setTransition(on2off);
-		//off.setTransition(off2on);
 
 		// Building the App
 		App theSwitch = new App();
@@ -72,7 +63,7 @@ public class Switch {
 		theSwitch.accept(codeGenerator);
 
 		// Printing the generated code on the console
-		System.out.println(codeGenerator.getResult());*/
+		System.out.println(codeGenerator.getResult());
 	}
 
 }

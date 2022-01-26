@@ -39,6 +39,11 @@ public class State implements NamedElement, Visitable {
 		this.transitions = transitions;
 	}
 
+	public void addTransition(Transition transition){
+		if(transition!=null&&(transition.getTimeCondition()!=null||(transition.getSensorConditions()!=null&&transition.getSensorConditions().size()>0))){
+			transitions.add(transition);
+		}
+	}
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
