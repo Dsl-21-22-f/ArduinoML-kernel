@@ -1,12 +1,11 @@
 package io.github.mosser.arduinoml.kernel.behavioral;
 
+import io.github.mosser.arduinoml.kernel.generator.Visitable;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 
-public class TimeCondition extends  AbstractCondition{
+public class TimeCondition implements Visitable {
 
     private int time;
-
-    private final ConditionType type = ConditionType.TIME;
 
     public int getTime() {
         return time;
@@ -21,8 +20,4 @@ public class TimeCondition extends  AbstractCondition{
         visitor.visit(this);
     }
 
-    @Override
-    public ConditionType getType() {
-        return type;
-    }
 }

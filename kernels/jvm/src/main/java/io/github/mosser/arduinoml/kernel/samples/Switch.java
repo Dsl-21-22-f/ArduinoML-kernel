@@ -42,7 +42,7 @@ public class Switch {
 		off.setActions(Arrays.asList(switchTheLightOff));
 
 		// Creating transitions
-		Transition on2off = new Transition();
+		/*Transition on2off = new Transition();
 		UnaryExpr expr = new UnaryExpr();
 		//expr.setSensor(button);
 		//expr.setValue(CONDITION.HIGH);
@@ -72,7 +72,7 @@ public class Switch {
 		theSwitch.accept(codeGenerator);
 
 		// Printing the generated code on the console
-		System.out.println(codeGenerator.getResult());
+		System.out.println(codeGenerator.getResult());*/
 	}
 
 }

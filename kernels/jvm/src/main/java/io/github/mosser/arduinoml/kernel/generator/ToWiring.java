@@ -69,7 +69,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			state.accept(this);
 		}
 		w("\t}\n");
-		context.put("pass",PASS.FIVE);
+		context.put("pass",PASS.SIX);
 		for(Brick brick: app.getBricks()){
 			brick.accept(this);
 		}
@@ -106,27 +106,17 @@ public class ToWiring extends Visitor<StringBuffer> {
 			w(String.format("   %sState = digitalRead(%d);\n", sensor.getName(), sensor.getPin()));
 			return;
 		}
-
-		if(context.get("pass") == PASS.FIVE) {
+		if(context.get("pass") == PASS.FOUR) {
+			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", sensor.getName()));
+			return;
+		}
+		if(context.get("pass") == PASS.SIX) {
+			printDebounceGuard(sensor.getName());
 			w(String.format("   %sLastState = %sState;\n", sensor.getName(),sensor.getName() ));
 			return;
 		}
 	}
 
-	@Override
-	public void visit(UnaryExpr unaryExpr) {
-		unaryExpr.getCondition().accept(this);
-	}
-
-	@Override
-	public void visit(BinaryExpr binaryExpr) {
-		binaryExpr.getLeft().accept(this);
-		if (context.get("pass") == PASS.FOUR){
-			//OPERATOR
-			w(String.format(" %s ", binaryExpr.getOperator().getValue()));
-		}
-		binaryExpr.getRight().accept(this);
-	}
 
 	@Override
 	public void visit(TimeCondition timeCondition) {
@@ -150,7 +140,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 				printSignalCondition(sensorCondition.getSensor(), sensorCondition.getValue());
 			}
 		}
-		if(context.get("pass") == PASS.FIVE) {
+		if(context.get("pass") == PASS.SIX) {
 			sensorCondition.getSensor().accept(this);
 		}
 
@@ -180,60 +170,32 @@ public class ToWiring extends Visitor<StringBuffer> {
 
 	@Override
 	public void visit(Transition transition) {
-		if(context.get("pass") == PASS.FOUR) {
-			Expr expr = transition.getExpr();
-			if (expr.getExprType() == ExprType.UNARY) {
-				if((((UnaryExpr) expr).getCondition()).getType()==ConditionType.SENSOR){
-					String sensorName = ((SensorCondition) ((UnaryExpr) expr).getCondition()).getSensor().getName();
-					printDebounceGuard(sensorName);
-				}
-
-			} else {
-				if((((BinaryExpr) expr).getLeft().getCondition()).getType()==ConditionType.SENSOR){
-					String sensorName = ((SensorCondition) ((BinaryExpr) expr).getLeft().getCondition()).getSensor().getName();
-					printDebounceGuard(sensorName);
-				}
-				if((((BinaryExpr) expr).getRight().getCondition()).getType()==ConditionType.SENSOR){
-					String sensorName2 = ((SensorCondition) ((BinaryExpr) expr).getRight().getCondition()).getSensor().getName();
-					printDebounceGuard(sensorName2);
-				}
-
-
-
-			}
-			//Conditions
+		if(transition.getTimeCondition()!=null){
 			w(String.format("\t\t\tif("));
-			expr.accept(this);
+			transition.getTimeCondition().accept(this);
+
+		}
+		if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0){
+			for(int i =0; i<transition.getSensorConditions().size(); i++){
+				transition.getSensorConditions().get(i).accept(this);
+				if(i+1<transition.getSensorConditions().size()){
+					w(String.format(" && "));
+				}
+			}
 			w(String.format("){\n"));
-			if(expr.getExprType() == ExprType.UNARY){
-				if((((UnaryExpr) expr).getCondition()).getType()==ConditionType.SENSOR) {
-					printDebounceButton(((UnaryExpr) expr));
-				}
+			context.put("pass",PASS.FOUR);
+			for(SensorCondition sensorCondition : transition.getSensorConditions()) {
+				sensorCondition.accept(this);
 			}
-			else{
-				if((((BinaryExpr) expr).getLeft().getCondition()).getType()==ConditionType.SENSOR) {
-
-					printDebounceButton(((BinaryExpr) expr).getLeft());
-				}
-				if((((BinaryExpr) expr).getRight().getCondition()).getType()==ConditionType.SENSOR) {
-
-					printDebounceButton(((BinaryExpr) expr).getRight());
-				}
-			}
-			w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
-			w("\t\t\t\ttimer = millis();\n");
-
-			w("\t\t\t}\n");
-			return;
 		}
+		w("\t\t\t\tcurrentState = " + transition.getNext().getName() + ";\n");
+		w("\t\t\t\ttimer = millis();\n");
+
+		w("\t\t\t}\n");
+		return;
+
 	}
 
-	void printDebounceButton(UnaryExpr expr){
-		if(((SensorCondition) expr.getCondition()).getSensor()!=null){
-			w(String.format("\t\t\t\t%sLastDebounceTime = millis();\n", ((SensorCondition) expr.getCondition()).getSensor().getName()));
-		}
-
-	}
 
 	void printPushedCondition(String sensorName){
 		w(String.format("   (%sLastState != %sState && %sBounceGuard && %sState == HIGH)", sensorName,sensorName,sensorName,sensorName));
