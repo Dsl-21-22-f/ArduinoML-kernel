@@ -1,9 +1,11 @@
 package main.groovy.groovuinoml.dsl
 
-import io.github.mosser.arduinoml.kernel.behavioral.BinaryExpr
 import io.github.mosser.arduinoml.kernel.behavioral.CONDITION
+import io.github.mosser.arduinoml.kernel.behavioral.ConditionType
 import io.github.mosser.arduinoml.kernel.behavioral.OPERATOR
-import io.github.mosser.arduinoml.kernel.behavioral.UnaryExpr
+import io.github.mosser.arduinoml.kernel.behavioral.SensorCondition
+import io.github.mosser.arduinoml.kernel.behavioral.TimeCondition
+import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
 
 import java.util.List;
 
@@ -50,17 +52,22 @@ abstract class GroovuinoMLBasescript extends Script {
 	
 	// from state1 to state2 when sensor becomes signal
 	def from(state1) {
-		[to: { state2 -> 
-			[when: { sensor1 ->
-				Boolean containsAndOr = false
+		[to: { state2 ->
+			List<SensorCondition> sensorConditions = new ArrayList<SensorCondition>();
+			TimeCondition timeCondition = null
+			((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
+					state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1,
+					state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
+					sensorConditions,
+					timeCondition)
+			def closure
+			closure = { sensor1 ->
 				[becomes: { signal1 ->
-					UnaryExpr expr1= new UnaryExpr();
-					expr1.setSensor(
-							sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor1) : (Sensor)sensor1)
-					expr1.setValue(
-							signal1 instanceof String ? (CONDITION)((GroovuinoMLBinding)this.getBinding()).getVariable(signal1) : (CONDITION)signal1)
-					/*
-					[and: { sensor2 ->
+					SensorCondition sensorCond = new SensorCondition();
+					sensorCond.setSensor(sensor1 instanceof String ? (Sensor) ((GroovuinoMLBinding) this.getBinding()).getVariable(sensor1) : (Sensor) sensor1)
+					sensorCond.setValue(signal1 instanceof String ? (CONDITION) ((GroovuinoMLBinding) this.getBinding()).getVariable(signal1) : (CONDITION) signal1)
+					sensorConditions.add(sensorCond)
+					/*[and: { sensor2 ->
 						containsAndOr = true
 						[becomes: { signal2 ->
 							UnaryExpr expr2= new UnaryExpr()
@@ -76,34 +83,15 @@ abstract class GroovuinoMLBasescript extends Script {
 									state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1,
 									state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
 									binExpr)
-						}]
-					}]*/
-					/*[or: { sensor2 ->
-						containsAndOr = true
-						[becomes: { signal2 ->
-							UnaryExpr expr2= new UnaryExpr()
-							expr2.setSensor(
-									sensor1 instanceof String ? (Sensor)((GroovuinoMLBinding)this.getBinding()).getVariable(sensor2) : (Sensor)sensor2)
-							expr2.setValue(
-									signal2 instanceof String ? (SIGNAL)((GroovuinoMLBinding)this.getBinding()).getVariable(signal2) : (SIGNAL)signal2)
-							BinaryExpr binExpr = new BinaryExpr()
-							binExpr.setLeft(expr1)
-							binExpr.setRight(expr2)
-							binExpr.operator(OPERATOR.OR)
-							((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
-									state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1,
-									state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
-									binExpr)
-						}]
-					}]*/
-					if(!containsAndOr){
-						((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
-								state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1,
-								state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
-								expr1)
-					}
+						}]*/
+					[and: closure]
 				}]
-			}]
+			}
+			[when: closure,
+			 after : { time ->
+				 timeCondition.setTime(Integer.parseInt(time))
+				 [and: closure]
+			 }]
 		}]
 	}
 	

@@ -9,7 +9,7 @@ public class GroovuinoMLBinding extends Binding {
 	// can be useful to return the script in case of syntax trick
 	private Script script;
 	
-	private GroovuinoMLModel model;
+	private main.groovy.groovuinoml.dsl.GroovuinoMLModel model;
 	
 	public GroovuinoMLBinding() {
 		super();
