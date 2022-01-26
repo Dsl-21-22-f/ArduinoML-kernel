@@ -38,6 +38,8 @@ contribute(currentType(subType('groovy.lang.Script'))) {
 	method type: Script, name: 'when', params: [sensorName:String], doc: 'Identify a Sensor that triggers the Transition'
 	method type: Script, name: 'and', params: [sensor:Object], doc: 'Define another Sensor to triggers the Transition'
 	method type: Script, name: 'and', params: [sensorName:String], doc: 'Define another Sensor to triggers the Transition'
+    method type: Script, name: 'or', params: [sensor:Object], doc : 'Define another Sensor to triggers the Transition'
+	method type: Script, name: 'or', params: [actuatorName:String], doc: 'Define another Actuator to triggers the Transition'
 
 	method type: void, name: 'export', params: [name:String], doc: 'Export the Arduino Script and define its name'
 }

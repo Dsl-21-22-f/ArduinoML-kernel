@@ -8,7 +8,9 @@ state "off" means "buzzer" becomes low and "led" becomes "low"
 
 initial "off"
 
-from "on" to "off" when "button" becomes "up" // or "button2" becomes "high"
-from off to on when button becomes down //and "button2" becomes "low"
+from off to on when button becomes down
+from off to on when "button2" becomes "down"
+from "on" to "off" when "button" becomes "up" and button2 becomes "up"
+
 
 export "Switch!"

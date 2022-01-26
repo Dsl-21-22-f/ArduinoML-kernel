@@ -3,15 +3,11 @@ package main.groovy.groovuinoml.dsl;
 import java.util.*;
 import groovy.lang.Binding;
 import io.github.mosser.arduinoml.kernel.App;
-import io.github.mosser.arduinoml.kernel.behavioral.Action;
-import io.github.mosser.arduinoml.kernel.behavioral.Expr;
-import io.github.mosser.arduinoml.kernel.behavioral.State;
-import io.github.mosser.arduinoml.kernel.behavioral.Transition;
+import io.github.mosser.arduinoml.kernel.behavioral.*;
 import io.github.mosser.arduinoml.kernel.generator.ToWiring;
 import io.github.mosser.arduinoml.kernel.generator.Visitor;
 import io.github.mosser.arduinoml.kernel.structural.Actuator;
 import io.github.mosser.arduinoml.kernel.structural.Brick;
-import io.github.mosser.arduinoml.kernel.structural.SIGNAL;
 import io.github.mosser.arduinoml.kernel.structural.Sensor;
 
 public class GroovuinoMLModel {
@@ -52,12 +48,12 @@ public class GroovuinoMLModel {
 		this.binding.setVariable(name, state);
 	}
 	
-	public void createTransition(State from, State to, Expr sensor) {
+	public void createTransition(State from, State to, List<SensorCondition> sensorConditions, TimeCondition timeCondition) {
 		Transition transition = new Transition();
 		transition.setNext(to);
-		transition.setExpr(sensor);
-		//transition.setValue(value);
-		from.setTransition(transition);
+		transition.setSensorConditions(sensorConditions);
+		transition.setTimeCondition(timeCondition);
+		from.getTransitions().add(transition);
 	}
 	
 	public void setInitialState(State state) {
