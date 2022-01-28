@@ -194,7 +194,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 		if(transition.getTimeCondition()!=null){
 			transition.getTimeCondition().accept(this);
 			if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0){
-				w(String.format(" AND "));
+				w(String.format(" && "));
 			}
 		}
 		//Sensor Condition
@@ -202,7 +202,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 			for (int i = 0; i < transition.getSensorConditions().size(); i++) {
 				transition.getSensorConditions().get(i).accept(this);
 				if (i+1  < transition.getSensorConditions().size()) {
-					w(String.format(" AND "));
+					w(String.format(" && "));
 				}
 			}
 

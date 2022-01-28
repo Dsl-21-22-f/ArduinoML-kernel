@@ -1,0 +1,28 @@
+application temporalTransition
+
+# Declaring bricks
+sensor button: 8
+actuator del: 11
+actuator led: 12
+
+# Declaring states
+onLed {
+    led <= HIGH
+    del <= LOW
+    before 2000 ms AND button is PUSHED => onDel
+    after 2000 ms => offLed
+}
+
+onDel {
+    led <= LOW
+    del <= HIGH
+    before 2000 ms AND button is PUSHED => onLed
+    after 2000 ms => offLed
+}
+
+-> offLed {
+    led <= LOW
+    del <= LOW
+    button is PUSHED => onLed
+}
+

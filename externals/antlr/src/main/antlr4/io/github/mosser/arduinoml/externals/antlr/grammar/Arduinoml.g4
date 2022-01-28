@@ -29,10 +29,6 @@ transition           :  (timecondition | sensorcondition |timeAndSensorCondition
     timeAndSensorCondition  :   (sensorConditionList 'AND')? timecondition ('AND' sensorConditionList)?;
     sensorConditionList     :   sensorcondition ('AND' sensorcondition)*;
 
-
-
-
-
 /*****************
  ** Lexer rules **
  *****************/
