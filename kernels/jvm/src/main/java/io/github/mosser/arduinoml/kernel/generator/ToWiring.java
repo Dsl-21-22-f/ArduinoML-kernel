@@ -129,8 +129,14 @@ public class ToWiring extends Visitor<StringBuffer> {
 	public void visit(TimeCondition timeCondition) {
 
 		if(context.get("pass") == PASS.FOUR) {
-			w(String.format("(millis() - timer > %d)",
-					timeCondition.getTime()));
+			if(timeCondition.getWhen() == WHEN.AFTER){
+				w(String.format("(millis() - timer > %d)",
+						timeCondition.getTime()));
+			}
+			else{
+				w(String.format("(millis() - timer < %d)",
+						timeCondition.getTime()));
+			}
 		}
 		if(context.get("pass") == PASS.FIVE) {
 

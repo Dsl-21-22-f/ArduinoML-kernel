@@ -24,7 +24,7 @@ transitionList       :  transitionList 'OR' transitionList
                      |  transition ;
 
 transition           :  (timecondition | sensorcondition |timeAndSensorCondition |sensorConditionList);
-    timecondition           :   'after' trigger=NUMBER 'ms';
+    timecondition           :   trigger=IDENTIFIER value=NUMBER 'ms';
     sensorcondition         :   trigger=IDENTIFIER 'is' value=(BUTTONSTATE|SIGNAL);
     timeAndSensorCondition  :   (sensorConditionList 'AND')? timecondition ('AND' sensorConditionList)?;
     sensorConditionList     :   sensorcondition ('AND' sensorcondition)*;
@@ -41,6 +41,7 @@ NUMBER          :   [0-9]+;
 IDENTIFIER      :   LOWERCASE (LOWERCASE|UPPERCASE)+;
 BUTTONSTATE     :   'PUSHED';
 SIGNAL          :   'HIGH' | 'LOW';
+
 /*************
  ** Helpers **
  *************/

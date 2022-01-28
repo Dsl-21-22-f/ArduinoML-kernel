@@ -157,7 +157,8 @@ public class ModelBuilder extends ArduinomlBaseListener {
     @Override
     public void enterTimecondition(ArduinomlParser.TimeconditionContext ctx) {
         TimeCondition timeCondition = new TimeCondition();
-        timeCondition.setTime(+Integer.parseInt(ctx.trigger.getText()));
+        timeCondition.setWhen(WHEN.valueOf(ctx.trigger.getText().toUpperCase()));
+        timeCondition.setTime(+Integer.parseInt(ctx.value.getText()));
         this.timeConditions.add(timeCondition);
     }
 
