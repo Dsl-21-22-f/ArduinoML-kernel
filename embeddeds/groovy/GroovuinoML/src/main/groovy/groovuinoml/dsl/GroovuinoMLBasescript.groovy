@@ -3,6 +3,7 @@ package main.groovy.groovuinoml.dsl
 import io.github.mosser.arduinoml.kernel.behavioral.CONDITION
 import io.github.mosser.arduinoml.kernel.behavioral.SensorCondition
 import io.github.mosser.arduinoml.kernel.behavioral.TimeCondition
+import io.github.mosser.arduinoml.kernel.behavioral.WHEN
 import main.groovy.groovuinoml.dsl.GroovuinoMLBinding
 
 import java.util.List;
@@ -58,6 +59,7 @@ abstract class GroovuinoMLBasescript extends Script {
 			newTransition = {
 				nb_Transition++
 				sensorConditions.add(new ArrayList<SensorCondition>())
+				timeConditions.add(new TimeCondition())
 				((GroovuinoMLBinding) this.getBinding()).getGroovuinoMLModel().createTransition(
 						state1 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state1) : (State)state1,
 						state2 instanceof String ? (State)((GroovuinoMLBinding)this.getBinding()).getVariable(state2) : (State)state2,
@@ -72,6 +74,8 @@ abstract class GroovuinoMLBasescript extends Script {
 					sensorCond.setSensor(sensor1 instanceof String ? (Sensor) ((GroovuinoMLBinding) this.getBinding()).getVariable(sensor1) : (Sensor) sensor1)
 					sensorCond.setValue(signal1 instanceof String ? (CONDITION) ((GroovuinoMLBinding) this.getBinding()).getVariable(signal1) : (CONDITION) signal1)
 					sensorConditions[nb_Transition].add(sensorCond)
+					print(sensorConditions[nb_Transition])
+
 					[and: closure,
 					 or : { signal2 ->
 						 newTransition()
@@ -81,10 +85,23 @@ abstract class GroovuinoMLBasescript extends Script {
 			}
 			[when: closure,
 			 after : { time ->
-				 timeConditions.add(new TimeCondition())
-				 timeConditions[nb_Transition].setTime(Integer.parseInt(time))
-				 [and: closure]
-			 }]
+				 timeConditions[nb_Transition].setTime(time)
+				 timeConditions[nb_Transition].setWhen(WHEN.AFTER)
+				 [and: closure,
+				  or : { signal2 ->
+					  newTransition()
+					  closure(signal2)
+				  }]
+			 },
+			before : { time ->
+				timeConditions[nb_Transition].setTime(time)
+				timeConditions[nb_Transition].setWhen(WHEN.BEFORE)
+				[and: closure,
+				 or : { signal2 ->
+					 newTransition()
+					 closure(signal2)
+				 }]
+			}]
 		}]
 	}
 	

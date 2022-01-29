@@ -191,7 +191,7 @@ public class ToWiring extends Visitor<StringBuffer> {
 		}
 		w(String.format("\t\t\tif("));
 		//Time condition
-		if(transition.getTimeCondition()!=null){
+		if(transition.getTimeCondition()!=null && transition.getTimeCondition().getTime()!=0){
 			transition.getTimeCondition().accept(this);
 			if(transition.getSensorConditions()!=null && transition.getSensorConditions().size()>0){
 				w(String.format(" && "));
