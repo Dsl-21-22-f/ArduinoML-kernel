@@ -9,8 +9,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="kernel-jvm" />
-    <orderEntry type="module" module-name="kernel-jvm" />
+    <orderEntry type="library" name="Maven: io.github.mosser.arduinoml:kernel-jvm:1.0" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.groovy:groovy-all:2.3.10" level="project" />
   </component>
 </module>

@@ -1,4 +1,4 @@
-application temporalTransition
+application temporalTransitionTwo
 
 # Declaring bricks
 sensor button: 8
@@ -9,11 +9,11 @@ actuator led: 12
 onLed {
     led <= HIGH
     del <= LOW
-    before 2000 ms AND button is PUSHED => onDel
+    before 2000 ms AND button is PUSHED => onLedTwo
     after 2000 ms => offLed
 }
 
-onDel {
+onLedTwo {
     led <= LOW
     del <= HIGH
     before 2000 ms AND button is PUSHED => onLed

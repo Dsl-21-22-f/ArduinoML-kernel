@@ -10,11 +10,6 @@ on {
     buzzer <= LOW
     buttontwo is HIGH OR button is HIGH => off
 
-    A OR B AND C OR D => E
-
-    A => E
-    B AND C => E
-    D => E
 }
 
 -> off {

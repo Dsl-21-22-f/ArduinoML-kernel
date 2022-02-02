@@ -1,5 +1,4 @@
 sensor "button" onPin 9
-sensor "button2" pin 12
 actuator "buzzer" pin 11
 actuator "led" pin 10
 

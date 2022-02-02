@@ -1,4 +1,4 @@
-application stateBasedAlarm
+application temporalTransition
 
 # Declaring bricks
 sensor button: 8
