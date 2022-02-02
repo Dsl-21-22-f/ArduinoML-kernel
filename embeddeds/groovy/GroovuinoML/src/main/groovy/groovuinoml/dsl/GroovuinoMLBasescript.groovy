@@ -75,8 +75,6 @@ abstract class GroovuinoMLBasescript extends Script {
 					sensorCond.setSensor(sensor1 instanceof String ? (Sensor) ((GroovuinoMLBinding) this.getBinding()).getVariable(sensor1) : (Sensor) sensor1)
 					sensorCond.setValue(signal1 instanceof String ? (CONDITION) ((GroovuinoMLBinding) this.getBinding()).getVariable(signal1) : (CONDITION) signal1)
 					sensorConditions[nb_Transition].add(sensorCond)
-					print(sensorConditions[nb_Transition])
-
 					[and: closure,
 					 or : { signal2 ->
 						 newTransition()
