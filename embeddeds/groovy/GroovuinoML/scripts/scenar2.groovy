@@ -3,13 +3,13 @@ sensor "button2" pin 12
 actuator "buzzer" pin 11
 actuator "led" pin 10
 
-state "on" means "buzzer" becomes "high" and "led" becomes "high"
-state "off" means "buzzer" becomes low and "led" becomes "low"
+state "onBuzzer" means "buzzer" becomes "high" and "led" becomes "high"
+state "offBuzzer" means "buzzer" becomes "low" and "led" becomes "low"
 
-initial "off"
+initial "offBuzzer"
 
-from off to on when button becomes down or "button2" becomes "down"
-from "on" to "off" when "button" becomes "up" and button2 becomes "up"
+from "offBuzzer" to "onBuzzer" when "button" becomes "down" or "button2" becomes "down"
+from "onBuzzer" to "offBuzzer" when "button" becomes "up" and "button2" becomes "up"
 
 
 export "Switch!"
