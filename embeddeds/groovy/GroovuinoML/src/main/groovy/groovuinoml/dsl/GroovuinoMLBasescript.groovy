@@ -68,6 +68,7 @@ abstract class GroovuinoMLBasescript extends Script {
 			}
 			newTransition()
 			def closure
+			def andOrMap
 			closure = { sensor1 ->
 				[becomes: { signal1 ->
 					SensorCondition sensorCond = new SensorCondition();
