@@ -8,7 +8,7 @@ state "off" means led1 becomes low and led2 becomes low and led3 becomes low
 
 initial off
 
-from on to off when button becomes high
-from off to on when button becomes high
+from on to off when button becomes up
+from off to on when button becomes up
 
 export "Switch!"

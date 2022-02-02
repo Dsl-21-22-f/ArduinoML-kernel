@@ -1,5 +1,5 @@
-sensor "button" onPin 9
-sensor "button2" pin 12
+sensor "buttonOne" onPin 9
+sensor "buttonTwo" pin 12
 actuator "buzzer" pin 11
 actuator "led" pin 10
 
@@ -8,8 +8,8 @@ state "offBuzzerLed" means "buzzer" becomes "low" and "led" becomes "low"
 
 initial "offBuzzerLed"
 
-from "offBuzzerLed" to "onBuzzer" when "button" becomes "down" or "button2" becomes "down"
-from "onBuzzerLed" to "offBuzzer" when "button" becomes "up" and "button2" becomes "up"
+from "offBuzzerLed" to "onBuzzerLed" when "buttonOne" becomes "down" and "buttonTwo" becomes "down"
+from "onBuzzerLed" to "offBuzzerLed" when "buttonOne" becomes "up" or "buttonTwo" becomes "up"
 
 
 export "Switch!"
